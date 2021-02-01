@@ -3,33 +3,341 @@
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-    <title>Hello, world!</title>
+    <title>Air Quality App</title>
+    <style>
+    	div#gmaps_container {
+    		float: left;
+		    width: 400px;
+		    max-width: 60%;
+		    margin: 10px;
+		    margin-left: 100px;
+		    box-shadow: 0 0 5px 2px #888;
+    	}
+    	div#aqi_maplegend {
+    		position: relative;
+    		min-height: 290px;
+    	}
+    	div#aqi_legend {
+		    position: absolute;
+		    top: -90px;
+		    right: -1rem;
+		    width: 500px;
+		    height: 500px;
+		    border-radius: 50%;
+		    background: radial-gradient(#fff, #444 40%, #000 41%, transparent 41.5%), conic-gradient(#7e0023 210deg, #99004c 210deg, #99004c 240deg, #ff0000 240deg, #ff0000 270deg, #ff7e00 270deg, #ff7e00 300deg, #ffff00 300deg, #ffff00 330deg, #00e400 330deg);
+		    box-shadow: 0 0 5px 3px #000;
+		    transform: translateX(50%);
+		}
+		div#aqi_legend > span {
+		    position: absolute;
+		    width: 100px;
+		    height: 240px;
+		    top: 10px;
+		    left: 50%;
+		    padding-top: 13px;
+    		color: #fff;
+    		font-weight: 500;
+    		text-align: center;
+    		text-shadow: 1px 2px 2px #000, 1px -1px 2px #000, -1px -1px 2px #000, -1px 2px 2px #000;
+		    transform-origin: 50% 100%;
+    		transform: translateX(-50%);
+		}
+		div#aqi_legend > span:first-of-type {
+		    transform: translateX(-50%) rotate(-15deg);
+		}
+		div#aqi_legend > span:nth-of-type(2) {
+		    transform: translateX(-50%) rotate(-45deg);
+		}
+		div#aqi_legend > span:nth-of-type(3) {
+		    transform: translateX(-50%) rotate(-75deg);
+		}
+		div#aqi_legend > span:nth-of-type(4) {
+		    transform: translateX(-50%) rotate(-105deg);
+		}
+		div#aqi_legend > span:nth-of-type(5) {
+		    transform: translateX(-50%) rotate(-135deg);
+		}
+		div#aqi_legend > span:nth-of-type(6) {
+		    transform: translateX(-50%) rotate(-165deg);
+		}
+		div#aqi_legend > span > span {
+		    display: inline-block;
+		}
+		div#aqi_legend > span:first-of-type > span {
+		    transform: rotate(15deg);
+		}
+		div#aqi_legend > span:nth-of-type(2) > span {
+		    transform: rotate(45deg);
+		}
+		div#aqi_legend > span:nth-of-type(3) > span {
+		    transform: rotate(75deg);
+		}
+		div#aqi_legend > span:nth-of-type(4) > span {
+		    transform: rotate(105deg);
+		}
+		div#aqi_legend > span:nth-of-type(5) > span {
+		    transform: rotate(135deg);
+		}
+		div#aqi_legend > span:nth-of-type(6) > span {
+		    transform: rotate(165deg);
+		}
+		div#aqi_needle {
+		    display: inline-block;
+		    position: absolute;
+		    top: 50%;
+		    left: 50%;
+		    transform: translate(-50%, -75%);
+		}
+		div#aqi_needle img {
+		    height: 250px;
+		    transform-origin: 50% 75%;
+		    transform: rotate(-90deg);
+		}
+    	.aqi_border {
+    		padding: 1rem;
+    		background-color: #e9ecef;
+    		border: 2rem solid #ccc;
+    		box-shadow: inset 0 0 5px 2px #222;
+    		overflow: hidden;
+    	}
+    	div.aqi_border > h3, div.aqi_border > h4 {
+		    position: relative;
+		    left: -1rem;
+		    width: calc(100% + 2rem);
+		    padding-left: 10px;
+		    color: #fff;
+		    text-shadow: 1px 1px 2px #000, 1px 0px 2px #000;
+		}
+		div.aqi_border > h3 {
+		    margin-bottom: 0;
+		    padding-top: 5px;
+		    background: linear-gradient(#000, rgba(120,120,120,.7) 30px), linear-gradient(90deg, #000, rgba(120,120,120,.7) 30px, rgba(120,120,120,.7) calc(100% - 30px), #000);
+		}
+		div.aqi_border > h4 {
+			padding-bottom: 5px;
+		    background: linear-gradient(rgba(120,120,120,.7), #000 30px), linear-gradient(90deg, #000, rgba(120,120,120,.7) 30px, rgba(120,120,120,.7) calc(100% - 30px), #000);
+		}
+    	.aqi_border hr {
+    		clear: both;
+    	}
+    	.aqi_good {
+    		border-color: #00e400 !important;
+    	}
+    	.aqi_moderate {
+    		border-color: #ffff00 !important;
+    	}
+    	.aqi_usg {
+    		border-color: #ff7e00 !important;
+    	}
+    	.aqi_unhealthy {
+    		border-color: #ff0000 !important;
+    	}
+    	.aqi_vunhealthy {
+    		border-color: #99004c !important;
+    	}
+    	.aqi_hazardous {
+    		border-color: #7e0023 !important;
+    	}
+    	.aqi_unavail {
+    		border-color: #ccc !important;
+    	}
+    	p#aqi_timestamp {
+    		max-width: 400px;
+    		margin: 0 auto;
+    		text-align: center;
+    	}
+    	h3.aqi_languages {
+    		margin-bottom: 3rem;
+    		font-size: 1rem;
+    		font-style: italic;
+    	}
+
+    	@media (max-width: 991px) {
+    		div#gmaps_container {
+			    max-width: 55%;
+			    margin: 25px 10px 10px;
+			}
+			p#aqi_timestamp {
+			    margin: 0;
+			}
+    	}
+
+    	@media (max-width: 767px) {
+    		div#aqi_maplegend {
+    			min-height: 475px;
+    			overflow: hidden;
+    		}
+    		div#gmaps_container {
+			    max-width: 80%;
+			    margin: 5px 10%;
+			}
+    		div#aqi_legend {
+			    top: auto;
+			    left: 50%;
+			    bottom: -200px;
+			    width: 400px;
+			    height: 400px;
+			    transform: translateX(-50%) scale(-1, 1) rotate(90deg);
+			}
+			div#aqi_legend > span {
+			    height: 190px;
+			}
+			div#aqi_legend > span:first-of-type > span {
+			    transform: rotate(105deg) scale(1, -1);
+			}
+			div#aqi_legend > span:nth-of-type(2) > span {
+			    transform: rotate(135deg) scale(1, -1);
+			}
+			div#aqi_legend > span:nth-of-type(3) > span {
+			    transform: rotate(165deg) scale(1, -1);
+			}
+			div#aqi_legend > span:nth-of-type(4) > span {
+			    transform: rotate(195deg) scale(1, -1);
+			}
+			div#aqi_legend > span:nth-of-type(5) > span {
+			    transform: rotate(225deg) scale(1, -1);
+			}
+			div#aqi_legend > span:nth-of-type(6) > span {
+			    transform: rotate(255deg) scale(1, -1);
+			}
+			div#aqi_legend > span > span > span {
+				display: none;
+				font-size: .9rem;
+			}
+			div#aqi_needle img {
+			    height: 200px;
+			}
+			.aqi_border hr.my-4 {
+			    display: none;
+			}
+			p#aqi_timestamp {
+			    max-width: calc(100% + 2rem);
+			    margin: 0 -1rem -1rem;
+			    padding: 15px 5px;
+			    color: #fff;
+			    text-shadow: 1px 1px 2px #000, 0px 1px 2px #000, 1px 0px 2px #000;
+			    background: linear-gradient(#ccc, #888, #444);
+			    box-shadow: inset 0px 1px 5px 1px #000;
+			}
+    	}
+
+    	@media (max-width: 575px) {
+    		div.container {
+    			min-width: 290px;
+    			padding: 0px 5px;
+    		}
+    		div.container > h1 {
+			    margin-top: .5rem;
+			    font-size: 1.5rem;
+			    text-align: center;
+			}
+    		div.aqi_border {
+			    padding: 1rem 0;
+			    border: 1rem solid #ccc;
+			}
+			div.aqi_border h1 {
+			    font-size: 2.5rem;
+			}
+			div.aqi_border > h3, div.aqi_border > h4 {
+			    left: 0;
+			    width: 100%;
+			    text-align: center;
+			}
+			div.aqi_border > h3 {
+			    font-size: 1.25rem;
+			}
+			div.aqi_border > h4 {
+			    margin-top: -10px;
+			    padding-top: 15px;
+			    font-size: 1.15rem;
+			    background: linear-gradient(rgba(120,120,120,.7) 15px, #000), linear-gradient(90deg, #000, rgba(120,120,120,.7) 30px, rgba(120,120,120,.7) calc(100% - 30px), #000);
+			}
+			div.aqi_border > h3 > span {
+			    display: block;
+			    width: 40px;
+			    height: 40px;
+			    margin: 10px auto;
+			    padding: 0;
+			    line-height: 40px;
+			    border-radius: 50%;
+			    border: 1rem solid;
+			    box-sizing: content-box;
+			}
+			div#gmaps_container {
+				width: calc(100% - 10px);
+			    max-width: none;
+			    margin: 5px;
+			}
+			p#aqi_timestamp {
+				max-width: 100%;
+				margin: 0;
+				margin-bottom: -1rem;
+			}
+    	}
+
+    	@media (max-width: 460px) {
+    		div#aqi_maplegend {
+    			min-height: auto;
+    			padding-bottom: 100px;
+    		}
+    		div#aqi_legend {
+			    bottom: -125px;
+			    width: 250px;
+			    height: 250px;
+			}
+			div#aqi_legend > span {
+			    display: none;
+			}
+			div#aqi_needle img {
+			    height: 125px;
+			}
+    	}
+    </style>
   </head>
   <body>
-  	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  	<!--<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
 	  <div class="container-fluid">
 	    <a class="navbar-brand" href="{% url 'home' %}">Weather App</a>
-	    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-	      <span class="navbar-toggler-icon"></span>
-	    </button>
-	    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-	        <li class="nav-item">
-	          <a class="nav-link" href="{% url 'about' %}">About Me</a>
-	        </li>
-	      </ul>
-	      <form class="d-flex">
-	        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-	        <button class="btn btn-outline-secondary" type="submit">Search</button>
-	      </form>
-	    </div>
+	    <a class="navbar-brand" href="{% url 'about' %}">About Project</a>
+	  </div>
+	</nav>-->
+
+
+
+
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+	  <a class="navbar-brand" href="https://seanreardon.com">SR Portfolio</a>
+	  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+	    <span class="navbar-toggler-icon"></span>
+	  </button>
+
+	  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+	    <ul class="navbar-nav mr-auto">
+	      <li class="nav-item active">
+	        <a class="nav-link" href="{% url 'home' %}">Air Quality App <span class="sr-only">(current)</span></a>
+	      </li>
+	      <li class="nav-item">
+	        <a class="nav-link" href="{% url 'about' %}">About Project</a>
+	      </li>
+	    </ul>
+	    <form class="form-inline my-2 my-lg-0" action="{% url 'home' %}" method="POST">
+	    	{% csrf_token %}
+	      <input class="form-control mr-sm-2" name="aqi_zip" type="search" placeholder="Enter Zip Code..." aria-label="Search">
+	      <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Lookup</button>
+	    </form>
 	  </div>
 	</nav>
+
+
+
+
+
+
   	<div class="container">
  		{% block content %}
 
@@ -37,13 +345,15 @@
 	</div>
     <!-- Optional JavaScript; choose one of the two! -->
 
-    <!-- Option 1: Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
 
     <!-- Option 2: Separate Popper and Bootstrap JS -->
     <!--
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
     -->
   </body>
 </html>

@@ -2,6 +2,32 @@
 
 {% block content %}
 
-<h1>Hello World!</h1>
+<h1>Current Air Quality</h1>
+{% if api %}
+	{% if api == "Error..." %}
+		<p>An error has occurred. Please try again.</p>
+	{% else %}
+	<div class="jumbotron aqi_border {{ aqi.class }}">
+	  <h1 class="display-4" style="text-align: center;">{{ api.0.Category.Name }}</h1>
+	  <h3 style="font-weight: normal;">Current Air Quality in {{ aqi.zip }}: <span class="{{ aqi.class }}" style="font-weight: 500;">{{ api.0.AQI }}</span></h3>
+	  <h4>({{ api.0.ReportingArea }})</h4>
+	  <div id="aqi_maplegend">
+		<div id="gmaps_container" class="embed-responsive embed-responsive-4by3">
+		  <iframe id="gmaps" class="embed-responsive-item" frameborder="0" src="https://maps.google.com/maps?output=embed&amp;q={{ aqi.zip }}"></iframe>
+		</div>
+		<div id="aqi_legend">
+			{% for x in aqi.legend %}
+				<span><span>{{ x | safe }}</span></span>
+			{% endfor %}
+			{% load static %}
+			<div id="aqi_needle"><img src="{% static 'lookup/images/gaugeNeedle.png' %}" style="transform: rotate(-{{ aqi.angle }}deg);" alt="AQI Indicator Needle" /></div>
+		</div>
+	  </div>
+	  <hr class="my-4">
+	  <p id="aqi_timestamp">These results shown are updated as of {{ aqi.time | date:'g:ia' }} {{ api.0.LocalTimeZone }} on {{ aqi.date | date:'l, F j, Y' }}.</p>
+	</div>
+	{% endif %}
+
+{% endif %}
 
 {% endblock %}
